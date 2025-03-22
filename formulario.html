@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Consulta para Genesys - Grupo ejecutivosPRO (by Luis)</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <form id="miFormulario">
+        <label for="rut">Rut:</label>
+        <input type="text" id="rut" name="rut" required>
+
+        <label for="producto">Producto:</label>
+        <select id="producto" name="producto">
+            <option value="BANCA EN LINEA">BANCA EN LINEA</option>
+            <option value="APP">APP</option>
+            <option value="TCR">TCR</option>
+            <option value="CCT">CCT</option>
+            <option value="CRUT">CRUT</option>
+            <option value="CHEQ ELECT">CHEQ ELECT</option>
+            <option value="CAJERO">CAJERO</option>
+            <option value="CAJ VEC">CAJ VEC</option>
+            <option value="SUC">SUC</option>
+            <option value="CRED CONSUMO">CRED CONSUMO</option>
+            <option value="CRED HIPOTE">CRED HIPOTE</option>
+            <option value="APV">APV</option>
+            <option value="DPF">DPF</option>
+            <option value="DPV">DPV</option>
+            <option value="ASIMPINO">ASIMPINO</option>
+            <option value="CHILEX">CHILEX</option>
+            <option value="SEGUROS">SEGUROS</option>
+        </select>
+
+        <label for="monto">Monto:</label>
+        <input type="number" id="monto" name="monto">
+
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" name="fecha">
+
+        <label for="canal">Canal:</label>
+        <select id="canal" name="canal">
+            <option value="CC_SoporteWeb">CC_SoporteWeb</option>
+            <option value="CC_PostVenta">CC_PostVenta</option>
+        </select>
+
+        <label for="descripcion">Descripción:</label>
+        <textarea id="descripcion" name="descripcion" rows="4" cols="50">Consulta </textarea>
+		<button type="button" id="generar">GENERARI</button>
+		<button type="button" id="copiar">COPIA EL TEXTI</button>
+	</form>
+
+    <div id="resultado"></div>
+	<br>
+	
+    <script src="script.js"></script>
+</body>
+<button id="cambiarModo">MODO COLOR</button>
+</html>
