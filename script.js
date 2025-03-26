@@ -3,10 +3,14 @@ document.addEventListener('DOMContentLoaded', function() {
     fechaInput.valueAsDate = new Date();
 
     const generarBtn = document.getElementById('generar');
-    const copiarBtn = document.getElementById('copiar'); // Crear botón "Copiar"
-    //copiarBtn.textContent = 'Copiar';
-    //document.getElementById('miFormulario').appendChild(copiarBtn); // Agregar botón al formulario
+    const copiarBtn = document.getElementById('copiar');
+	const recargarBtn = document.getElementById('recargar');
 
+    recargarBtn.addEventListener('click', function() {
+        location.reload();
+	});
+    
+	
     generarBtn.addEventListener('click', function() {
         const rut = document.getElementById('rut').value;
         const producto = document.getElementById('producto').value;
