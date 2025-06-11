@@ -1,0 +1,165 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atención al Cliente</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .module { margin-bottom: 20px; }
+        .ficha { background-color: #f0f0f0; padding: 10px; border-radius: 5px; }
+        .form-group { margin-bottom: 10px; }
+        .warning { color: red; display: none; }
+    </style>
+</head>
+<body>
+    <!-- Módulo 1: Ficha de Procedimiento -->
+    <div class="module ficha">
+        <h2>FICHA DE PROCEDIMIENTO</h2>
+        <p>* AUT: SÍ (PERSONA= CLAVE O TOMBOLA1) (EMPRESA=TOMBOLA2 "TITULAR O TERCERO")</p>
+        <p>* AUT: NO (A SUCURSAL O NUEVO CONTACTO CON ANTECEDENTES)</p>
+    </div>
+
+    <!-- Módulo 2: Antecedentes -->
+    <div class="module">
+        <h2>ANTECEDENTES</h2>
+        <div class="form-group">
+            <label for="motivo">MOTIVO:</label>
+            <select id="motivo">
+                <option value="01 EXTRAVÍO">01 EXTRAVÍO</option>
+                <option value="02 ROBO">02 ROBO</option>
+                <option value="09 DESTRUIDA">09 DESTRUIDA</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="fono">FONO:</label>
+            <input type="text" id="fono">
+        </div>
+        <div class="form-group">
+            <label for="fecha">FECHA:</label>
+            <input type="date" id="fecha">
+        </div>
+        <div class="form-group">
+            <label for="hora">HORA:</label>
+            <input type="time" id="hora">
+        </div>
+        <div class="form-group">
+            <label for="comuna">COMUNA:</label>
+            <input type="text" id="comuna">
+        </div>
+        <div class="form-group">
+            <label>CEDULA:</label>
+            <select id="cedula">
+                <option value="CON CEDULA">CON CEDULA</option>
+                <option value="SIN CEDULA">SIN CEDULA</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>PRODUCTOS:</label><br>
+            <input type="checkbox" id="atm" value="ATM"> ATM<br>
+            <input type="checkbox" id="tarjeta_credito" value="TARJETA DE CREDITO"> TARJETA DE CREDITO<br>
+            <input type="checkbox" id="tarjeta_credito_corp" value="TARJETA DE CREDITO CORP"> TARJETA DE CREDITO CORP<br>
+            <input type="checkbox" id="tarjeta_credito_corp_exec" value="TARJETA DE CREDITO CORP EXECUTIVE"> TARJETA DE CREDITO CORP EXECUTIVE<br>
+            <input type="checkbox" id="app_rp" value="APP & RP"> APP & RP<br>
+            <input type="checkbox" id="internet" value="INTERNET"> INTERNET<br>
+            <input type="checkbox" id="tc" value="TC"> TC<br>
+        </div>
+        <button onclick="copiarDatos()">Copiar Datos</button>
+    </div>
+
+    <!-- Módulo 3: Mensajes de Advertencia -->
+    <div class="module">
+        <h2>MENSAJES DE ADVERTENCIA</h2>
+        <p id="warn_atm" class="warning">Advertencia: Recuerde bloquear la tarjeta ATM.</p>
+        <p id="warn_tarjeta_credito" class="warning">Advertencia: Contacte al emisor de la tarjeta de crédito.</p>
+        <p id="warn_tarjeta_credito_corp" class="warning">Advertencia: Contacte al emisor de la tarjeta corporativa.</p>
+        <p id="warn_tarjeta_credito_corp_exec" class="warning">Advertencia: Contacte al emisor de la tarjeta corporativa executive.</p>
+        <p id="warn_app_rp" class="warning">Advertencia: Verifique el acceso a la aplicación.</p>
+        <p id="warn_internet" class="warning">Advertencia: Revise la conexión a internet.</p>
+        <p id="warn_tc" class="warning">Advertencia: Contacte al soporte técnico.</p>
+    </div>
+
+    <script>
+        // Función para copiar los datos como texto plano
+        function copiarDatos() {
+            const motivo = document.getElementById('motivo').value;
+            const fono = document.getElementById('fono').value;
+            const fecha = document.getElementById('fecha').value;
+            const hora = document.getElementById('hora').value;
+            const comuna = document.getElementById('comuna').value;
+            const cedula = document.getElementById('cedula').value;
+            
+            const productos = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                productos.push(checkbox.value);
+            });
+
+            const texto = `
+MOTIVO: ${motivo}
+FONO: ${fono}
+FECHA: ${fecha}
+HORA: ${hora}
+COMUNA: ${comuna}
+CEDULA: ${cedula}
+PRODUCTOS: ${productos.join(', ')}
+            `.trim();
+
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('Datos copiados al portapapeles');
+            });
+        }
+
+        // Actualizar advertencias en tiempo real
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const warnId = `warn_${checkbox.id}`;
+                const warning = document.getElementById(warnId);
+                if (checkbox.checked) {
+                    warning.style.display = 'block';
+                } else {
+                    warning.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
