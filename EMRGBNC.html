@@ -49,6 +49,16 @@
         .ficha { background-color: #f0f0f0; padding: 10px; border-radius: 5px; }
         .form-group { margin-bottom: 10px; }
         .warning { color: red; display: none; }
+        #atm_opciones { display: none; margin-left: 20px; }
+        .blinking-message {
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { color: red; }
+            50% { color: blue; }
+            100% { color: red; }
+        }
     </style>
 </head>
 <body>
@@ -96,6 +106,11 @@
         <div class="form-group">
             <label>PRODUCTOS:</label><br>
             <input type="checkbox" id="atm" value="ATM"> ATM<br>
+            <div id="atm_opciones">
+                <input type="checkbox" id="atm_cuenta_rut" value="CUENTA RUT"> CUENTA RUT<br>
+                <input type="checkbox" id="atm_cheq_electronica" value="CHEQ ELECTRONICA"> CHEQ ELECTRÓNICA<br>
+                <input type="checkbox" id="atm_cuenta_corriente" value="CUENTA CORRIENTE"> CUENTA CORRIENTE<br>
+            </div>
             <input type="checkbox" id="tarjeta_credito" value="TARJETA DE CREDITO"> TARJETA DE CREDITO<br>
             <input type="checkbox" id="tarjeta_credito_corp" value="TARJETA DE CREDITO CORP"> TARJETA DE CREDITO CORP<br>
             <input type="checkbox" id="tarjeta_credito_corp_exec" value="TARJETA DE CREDITO CORP EXECUTIVE"> TARJETA DE CREDITO CORP EXECUTIVE<br>
@@ -109,6 +124,7 @@
     <!-- Módulo 3: Mensajes de Advertencia -->
     <div class="module">
         <h2>MENSAJES DE ADVERTENCIA</h2>
+        <p class="blinking-message">RECORDAR INDICAR AL FINAL EL NUMERO DE ATENCION</p>
         <p id="warn_atm" class="warning">Advertencia: Recuerde bloquear la tarjeta ATM.</p>
         <p id="warn_tarjeta_credito" class="warning">Advertencia: Contacte al emisor de la tarjeta de crédito.</p>
         <p id="warn_tarjeta_credito_corp" class="warning">Advertencia: Contacte al emisor de la tarjeta corporativa.</p>
@@ -118,7 +134,58 @@
         <p id="warn_tc" class="warning">Advertencia: Contacte al soporte técnico.</p>
     </div>
 
-    <script>
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+
+                    // Convert sheet to JSON to filter blank rows
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                    // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    // Fallback
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+
+                    // Convert filtered JSON back to CSV
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        // Mostrar/ocultar opciones de ATM
+        document.getElementById('atm').addEventListener('change', () => {
+            const atmOpciones = document.getElementById('atm_opciones');
+            atmOpciones.style.display = document.getElementById('atm').checked ? 'block' : 'none';
+            // Limpiar selecciones si se desmarca ATM
+            if (!document.getElementById('atm').checked) {
+                document.querySelectorAll('#atm_opciones input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+        });
+
         // Función para copiar los datos como texto plano
         function copiarDatos() {
             const motivo = document.getElementById('motivo').value;
@@ -131,6 +198,12 @@
             const productos = [];
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
                 productos.push(checkbox.value);
+                // Si ATM está seleccionado, incluir las opciones de ATM seleccionadas
+                if (checkbox.id === 'atm') {
+                    document.querySelectorAll('#atm_opciones input[type="checkbox"]:checked').forEach(atmCheckbox => {
+                        productos.push(`ATM-${atmCheckbox.value}`);
+                    });
+                }
             });
 
             const texto = `
@@ -153,10 +226,8 @@ PRODUCTOS: ${productos.join(', ')}
             checkbox.addEventListener('change', () => {
                 const warnId = `warn_${checkbox.id}`;
                 const warning = document.getElementById(warnId);
-                if (checkbox.checked) {
-                    warning.style.display = 'block';
-                } else {
-                    warning.style.display = 'none';
+                if (warning) {
+                    warning.style.display = checkbox.checked ? 'block' : 'none';
                 }
             });
         });
