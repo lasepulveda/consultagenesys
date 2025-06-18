@@ -194,15 +194,13 @@
 
     <!-- Módulo 1: Ficha de Procedimiento -->
     <div class="module ficha">
-        <h2>PROCEDIMIENTO</h2>
-        <p>* AUT: SÍ (PERSONA= CLAVE O TOMBOLA1) (EMPRESA=TOMBOLA2 "TITULAR O TERCERO")</p>
-        <p>* AUT: NO (A SUCURSAL O NUEVO CONTACTO CON ANTECEDENTES)</p>
+        <p>AUT: SÍ (PERSONA = CLAVE O TOMBOLA1) - (EMPRESA = TOMBOLA2 "TITULAR O TERCERO")</p>
+        <p>AUT: NO (A SUCURSAL O NUEVO CONTACTO CON ANTECEDENTES)</p>
     </div>
     <p class="blinking-message">INDICAR AL FINAL DE LA ATENCION EL NUMERO DE CASO</p>
 
     <!-- Módulo 2: Antecedentes -->
     <div class="module">
-        <h2>ANTECEDENTES</h2>
         <div class="form-group">
             <label for="motivo">MOTIVO:</label>
             <select id="motivo">
@@ -235,10 +233,6 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="numero_caso">NUMERO DE CASO:</label>
-            <input type="text" id="numero_caso">
-        </div>
-        <div class="form-group">
             <label>PRODUCTOS:</label>
             <div>
                 <input type="checkbox" id="atm" value="ATM"> ATM<br>
@@ -260,7 +254,7 @@
 
     <!-- Módulo 3: Mensajes de Advertencia -->
     <div class="module">
-        <h2>MENSAJES DE ADVERTENCIA</h2>
+        <h3>MENSAJES DE ADVERTENCIA</h3>
         <p id="warn_atm" class="warning">Advertencia: BLOQUEAR LA TARJETA EN P.A O CON E.N.</p>
         <p id="warn_tarjeta_credito" class="warning">Advertencia: BLOQUEAR LA TARJETA CON E.N.</p>
         <p id="warn_tarjeta_credito_corp" class="warning">Advertencia: AL BLOQUEAR UNA TCR CORPORATE DEBES SELECCIONAR “LA TARJETA” QUE ESTÉ ASOCIADA AL CLIENTE, NUNCA BLOQUEAR LA CUENTA EMPRESA O TODAS LAS TARJETAS.</p>
@@ -333,7 +327,6 @@
             const hora = document.getElementById('hora').value;
             const comuna = document.getElementById('comuna').value;
             const cedula = document.getElementById('cedula').value;
-            const numeroCaso = document.getElementById('numero_caso').value;
             
             // Usar un Set para evitar duplicados
             const productosSet = new Set();
@@ -359,7 +352,6 @@ FECHA: ${fecha}
 HORA: ${hora}
 COMUNA: ${comuna}
 CEDULA: ${cedula}
-NUMERO DE CASO: ${numeroCaso}
 PRODUCTOS: ${productos.join(', ')}
             `.trim();
 
