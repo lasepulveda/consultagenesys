@@ -44,30 +44,161 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atención al Cliente</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .module { margin-bottom: 20px; }
-        .ficha { background-color: #f0f0f0; padding: 10px; border-radius: 5px; }
-        .form-group { margin-bottom: 10px; }
-        .warning { color: red; display: none; }
-        #atm_opciones { display: none; margin-left: 20px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 10px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body.modo-oscuro {
+            background-color: #333;
+            color: #f4f4f4;
+        }
+        label {
+            display: block;
+            margin-bottom: 2px;
+            font-weight: bold;
+        }
+        input, select {
+            width: calc(100% - 12px);
+            padding: 10px;
+            margin-bottom: 2px;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            box-sizing: border-box;
+            background-color: white;
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        body.modo-oscuro input,
+        body.modo-oscuro select {
+            background-color: #444;
+            color: #f4f4f4;
+            border-color: #555;
+        }
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        button {
+            padding: 12px 25px;
+            background-color: #ed8d0e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #resultado {
+            margin-top: 25px;
+            border: 2px solid #eee;
+            padding: 2px;
+            background-color: white;
+            border-radius: 2px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        body.modo-oscuro #resultado {
+            background-color: #444;
+            border-color: #555;
+            box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+        }
+        .module {
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        body.modo-oscuro .module {
+            background: #444;
+            box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+        }
+        .ficha {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        body.modo-oscuro .ficha {
+            background-color: #555;
+            border-color: #666;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            align-items: center;
+            gap: 10px;
+        }
+        #atm_opciones {
+            display: none;
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        .warning {
+            color: #dc3545;
+            display: none;
+            font-size: 14px;
+            margin: 5px 0;
+        }
         .blinking-message {
             font-weight: bold;
+            font-size: 18px;
             animation: blink 1s infinite;
+            margin: 20px 0;
+            text-align: center;
         }
         @keyframes blink {
-            0% { color: red; }
-            50% { color: blue; }
-            100% { color: red; }
+            0% { color: #dc3545; }
+            50% { color: #007bff; }
+            100% { color: #dc3545; }
+        }
+        h2 {
+            color: #ed8d0e;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        body.modo-oscuro h2 {
+            color: #f4f4f4;
+        }
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+            .form-group label {
+                margin-bottom: 5px;
+            }
+            input, select {
+                max-width: 100%;
+            }
+            body {
+                margin: 15px;
+            }
+            .module {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Botón para cambiar entre modo claro y oscuro -->
+    <button onclick="toggleModoOscuro()">Cambiar a Modo Oscuro</button>
+
     <!-- Módulo 1: Ficha de Procedimiento -->
     <div class="module ficha">
-        <h2>FICHA DE PROCEDIMIENTO</h2>
+        <h2>PROCEDIMIENTO</h2>
         <p>* AUT: SÍ (PERSONA= CLAVE O TOMBOLA1) (EMPRESA=TOMBOLA2 "TITULAR O TERCERO")</p>
         <p>* AUT: NO (A SUCURSAL O NUEVO CONTACTO CON ANTECEDENTES)</p>
     </div>
+    <p class="blinking-message">INDICAR AL FINAL DE LA ATENCION EL NUMERO DE CASO</p>
 
     <!-- Módulo 2: Antecedentes -->
     <div class="module">
@@ -104,19 +235,25 @@
             </select>
         </div>
         <div class="form-group">
-            <label>PRODUCTOS:</label><br>
-            <input type="checkbox" id="atm" value="ATM"> ATM<br>
-            <div id="atm_opciones">
-                <input type="checkbox" id="atm_cuenta_rut" value="CUENTA RUT"> CUENTA RUT<br>
-                <input type="checkbox" id="atm_cheq_electronica" value="CHEQ ELECTRONICA"> CHEQ ELECTRÓNICA<br>
-                <input type="checkbox" id="atm_cuenta_corriente" value="CUENTA CORRIENTE"> CUENTA CORRIENTE<br>
+            <label for="numero_caso">NUMERO DE CASO:</label>
+            <input type="text" id="numero_caso">
+        </div>
+        <div class="form-group">
+            <label>PRODUCTOS:</label>
+            <div>
+                <input type="checkbox" id="atm" value="ATM"> ATM<br>
+                <div id="atm_opciones">
+                    <input type="checkbox" id="atm_cuenta_rut" value="CUENTA RUT"> CUENTA RUT<br>
+                    <input type="checkbox" id="atm_cheq_electronica" value="CHEQ ELECTRONICA"> CHEQ ELECTRÓNICA<br>
+                    <input type="checkbox" id="atm_cuenta_corriente" value="CUENTA CORRIENTE"> CUENTA CORRIENTE<br>
+                </div>
+                <input type="checkbox" id="tarjeta_credito" value="TARJETA DE CREDITO"> TARJETA DE CREDITO<br>
+                <input type="checkbox" id="tarjeta_credito_corp" value="TARJETA DE CREDITO CORP"> TARJETA DE CREDITO CORP<br>
+                <input type="checkbox" id="tarjeta_credito_corp_exec" value="TARJETA DE CREDITO CORP EXECUTIVE"> TARJETA DE CREDITO CORP EXECUTIVE<br>
+                <input type="checkbox" id="app_rp" value="APP & RP"> APP & RP<br>
+                <input type="checkbox" id="internet" value="INTERNET"> INTERNET<br>
+                <input type="checkbox" id="tc" value="TARJETA COORDENADA"> TARJETA COORDENADAS<br>
             </div>
-            <input type="checkbox" id="tarjeta_credito" value="TARJETA DE CREDITO"> TARJETA DE CREDITO<br>
-            <input type="checkbox" id="tarjeta_credito_corp" value="TARJETA DE CREDITO CORP"> TARJETA DE CREDITO CORP<br>
-            <input type="checkbox" id="tarjeta_credito_corp_exec" value="TARJETA DE CREDITO CORP EXECUTIVE"> TARJETA DE CREDITO CORP EXECUTIVE<br>
-            <input type="checkbox" id="app_rp" value="APP & RP"> APP & RP<br>
-            <input type="checkbox" id="internet" value="INTERNET"> INTERNET<br>
-            <input type="checkbox" id="tc" value="TC"> TC<br>
         </div>
         <button onclick="copiarDatos()">Copiar Datos</button>
     </div>
@@ -124,15 +261,17 @@
     <!-- Módulo 3: Mensajes de Advertencia -->
     <div class="module">
         <h2>MENSAJES DE ADVERTENCIA</h2>
-        <p class="blinking-message">RECORDAR INDICAR AL FINAL EL NUMERO DE ATENCION</p>
-        <p id="warn_atm" class="warning">Advertencia: Recuerde bloquear la tarjeta ATM.</p>
-        <p id="warn_tarjeta_credito" class="warning">Advertencia: Contacte al emisor de la tarjeta de crédito.</p>
-        <p id="warn_tarjeta_credito_corp" class="warning">Advertencia: Contacte al emisor de la tarjeta corporativa.</p>
-        <p id="warn_tarjeta_credito_corp_exec" class="warning">Advertencia: Contacte al emisor de la tarjeta corporativa executive.</p>
-        <p id="warn_app_rp" class="warning">Advertencia: Verifique el acceso a la aplicación.</p>
-        <p id="warn_internet" class="warning">Advertencia: Revise la conexión a internet.</p>
-        <p id="warn_tc" class="warning">Advertencia: Contacte al soporte técnico.</p>
+        <p id="warn_atm" class="warning">Advertencia: BLOQUEAR LA TARJETA EN P.A O CON E.N.</p>
+        <p id="warn_tarjeta_credito" class="warning">Advertencia: BLOQUEAR LA TARJETA CON E.N.</p>
+        <p id="warn_tarjeta_credito_corp" class="warning">Advertencia: AL BLOQUEAR UNA TCR CORPORATE DEBES SELECCIONAR “LA TARJETA” QUE ESTÉ ASOCIADA AL CLIENTE, NUNCA BLOQUEAR LA CUENTA EMPRESA O TODAS LAS TARJETAS.</p>
+        <p id="warn_tarjeta_credito_corp_exec" class="warning">Advertencia: AL BLOQUEAR UNA TCR CORPORATE DEBES SELECCIONAR “LA TARJETA” QUE ESTÉ ASOCIADA AL CLIENTE, NUNCA BLOQUEAR LA CUENTA EMPRESA O TODAS LAS TARJETAS.</p>
+        <p id="warn_app_rp" class="warning">Advertencia: SOLICITE BLOQUEO DE APP POR INFODATA CON RUT DE CLIENTE.</p>
+        <p id="warn_internet" class="warning">Advertencia: BLOQUEAR LA CLAVE DE INTERNET EN EL NAVEGADOR.</p>
+        <p id="warn_tc" class="warning">Advertencia: BLOQUEAR LA TARJETA CON E.N.</p>
     </div>
+
+    <!-- Resultado -->
+    <div id="resultado"></div>
 
     <script type="text/javascript">
         var gk_isXlsx = false;
@@ -194,17 +333,24 @@
             const hora = document.getElementById('hora').value;
             const comuna = document.getElementById('comuna').value;
             const cedula = document.getElementById('cedula').value;
+            const numeroCaso = document.getElementById('numero_caso').value;
             
-            const productos = [];
+            // Usar un Set para evitar duplicados
+            const productosSet = new Set();
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-                productos.push(checkbox.value);
-                // Si ATM está seleccionado, incluir las opciones de ATM seleccionadas
                 if (checkbox.id === 'atm') {
+                    // Si ATM está seleccionado, solo incluir las subopciones
                     document.querySelectorAll('#atm_opciones input[type="checkbox"]:checked').forEach(atmCheckbox => {
-                        productos.push(`ATM-${atmCheckbox.value}`);
+                        productosSet.add(atmCheckbox.value);
                     });
+                } else {
+                    // Incluir otros productos directamente
+                    productosSet.add(checkbox.value);
                 }
             });
+
+            // Convertir el Set a un array para el join
+            const productos = Array.from(productosSet);
 
             const texto = `
 MOTIVO: ${motivo}
@@ -213,8 +359,13 @@ FECHA: ${fecha}
 HORA: ${hora}
 COMUNA: ${comuna}
 CEDULA: ${cedula}
+NUMERO DE CASO: ${numeroCaso}
 PRODUCTOS: ${productos.join(', ')}
             `.trim();
+
+            // Mostrar el texto en el div de resultado
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = texto;
 
             navigator.clipboard.writeText(texto).then(() => {
                 alert('Datos copiados al portapapeles');
@@ -231,6 +382,13 @@ PRODUCTOS: ${productos.join(', ')}
                 }
             });
         });
+
+        // Función para alternar modo oscuro
+        function toggleModoOscuro() {
+            document.body.classList.toggle('modo-oscuro');
+            const button = document.querySelector('button[onclick="toggleModoOscuro()"]');
+            button.textContent = document.body.classList.contains('modo-oscuro') ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro';
+        }
     </script>
 </body>
 </html>
