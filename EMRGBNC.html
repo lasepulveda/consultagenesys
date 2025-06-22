@@ -46,11 +46,12 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            line-height: 1.0;
             background-color: #f4f4f4;
             color: #333;
-            margin: 10px;
+            margin: 8px;
             transition: background-color 0.3s ease, color 0.3s ease;
+            font-size: 14px;
         }
         body.modo-oscuro {
             background-color: #333;
@@ -60,10 +61,11 @@
             display: block;
             margin-bottom: 2px;
             font-weight: bold;
+            font-size: 13px;
         }
         input, select {
-            width: calc(100% - 12px);
-            padding: 10px;
+            width: calc(100% - 10px);
+            padding: 8px;
             margin-bottom: 2px;
             border: 1px solid #ddd;
             border-radius: 2px;
@@ -71,6 +73,7 @@
             background-color: white;
             color: #333;
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            font-size: 13px;
         }
         body.modo-oscuro input,
         body.modo-oscuro select {
@@ -80,29 +83,32 @@
         }
         input[type="checkbox"] {
             width: auto;
-            margin-right: 10px;
+            margin-right: 8px;
+            transform: scale(0.9);
         }
         button {
-            padding: 12px 25px;
+            padding: 10px 20px;
             background-color: #ed8d0e;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin: 5px;
+            margin: 4px;
+            font-size: 13px;
         }
         button:hover {
             background-color: #0056b3;
         }
         #resultado {
-            margin-top: 25px;
+            margin-top: 20px;
             border: 2px solid #eee;
             padding: 2px;
             background-color: white;
             border-radius: 2px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            font-size: 13px;
         }
         body.modo-oscuro #resultado {
             background-color: #444;
@@ -110,10 +116,10 @@
             box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
         }
         .module {
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             background: #fff;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 16px;
+            border-radius: 6px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         body.modo-oscuro .module {
@@ -122,37 +128,38 @@
         }
         .ficha {
             background-color: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 6px;
             border: 1px solid #dee2e6;
+            font-size: 13px;
         }
         body.modo-oscuro .ficha {
             background-color: #555;
             border-color: #666;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             display: grid;
-            grid-template-columns: 150px 1fr;
+            grid-template-columns: 120px 1fr;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
-        #atm_opciones {
+        #atm_opciones, #credito_opciones {
             display: none;
-            margin-left: 20px;
-            margin-top: 10px;
+            margin-left: 16px;
+            margin-top: 8px;
         }
         .warning {
             color: #dc3545;
             display: none;
-            font-size: 14px;
-            margin: 5px 0;
+            font-size: 12px;
+            margin: 4px 0;
         }
         .blinking-message {
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             animation: blink 1s infinite;
-            margin: 20px 0;
+            margin: 16px 0;
             text-align: center;
         }
         @keyframes blink {
@@ -162,44 +169,51 @@
         }
         h2 {
             color: #ed8d0e;
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 20px;
+            margin-bottom: 12px;
         }
         body.modo-oscuro h2 {
             color: #f4f4f4;
         }
-        /* Responsive Design */
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
         @media (max-width: 600px) {
             .form-group {
                 grid-template-columns: 1fr;
             }
             .form-group label {
-                margin-bottom: 5px;
+                margin-bottom: 4px;
             }
             input, select {
                 max-width: 100%;
             }
             body {
-                margin: 15px;
+                margin: 12px;
             }
             .module {
-                padding: 15px;
+                padding: 12px;
+            }
+            .button-group {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Botón para cambiar entre modo claro y oscuro -->
-    <button onclick="toggleModoOscuro()">Cambiar a Modo Oscuro</button>
+    <div class="button-group">
+        <button onclick="toggleModoOscuro()">Cambiar a Modo Oscuro</button>
+        <button onclick="resetFormulario()">Restablecer Formulario</button>
+    </div>
 
-    <!-- Módulo 1: Ficha de Procedimiento -->
     <div class="module ficha">
         <p>AUT: SÍ (PERSONA = CLAVE O TOMBOLA1) - (EMPRESA = TOMBOLA2 "TITULAR O TERCERO")</p>
         <p>AUT: NO (A SUCURSAL O NUEVO CONTACTO CON ANTECEDENTES)</p>
     </div>
     <p class="blinking-message">INDICAR AL FINAL DE LA ATENCION EL NUMERO DE CASO</p>
 
-    <!-- Módulo 2: Antecedentes -->
     <div class="module">
         <div class="form-group">
             <label for="motivo">MOTIVO:</label>
@@ -208,6 +222,10 @@
                 <option value="02 ROBO">02 ROBO</option>
                 <option value="09 DESTRUIDA">09 DESTRUIDA</option>
             </select>
+        </div>
+        <div class="form-group">
+            <label for="rut">RUT:</label>
+            <input type="text" id="rut">
         </div>
         <div class="form-group">
             <label for="fono">FONO:</label>
@@ -235,24 +253,30 @@
         <div class="form-group">
             <label>PRODUCTOS:</label>
             <div>
-                <input type="checkbox" id="atm" value="ATM"> ATM<br>
+                <input type="checkbox" id="atm" value="DÉBITO"> DÉBITO<br>
                 <div id="atm_opciones">
                     <input type="checkbox" id="atm_cuenta_rut" value="CUENTA RUT"> CUENTA RUT<br>
-                    <input type="checkbox" id="atm_cheq_electronica" value="CHEQ ELECTRONICA"> CHEQ ELECTRÓNICA<br>
+                    <input type="checkbox" id="atm_cheq_electronica" value="CHEQ ELECTRÓNICA"> CHEQ ELECTRÓNICA<br>
                     <input type="checkbox" id="atm_cuenta_corriente" value="CUENTA CORRIENTE"> CUENTA CORRIENTE<br>
                 </div>
-                <input type="checkbox" id="tarjeta_credito" value="TARJETA DE CREDITO"> TARJETA DE CREDITO<br>
-                <input type="checkbox" id="tarjeta_credito_corp" value="TARJETA DE CREDITO CORP"> TARJETA DE CREDITO CORP<br>
-                <input type="checkbox" id="tarjeta_credito_corp_exec" value="TARJETA DE CREDITO CORP EXECUTIVE"> TARJETA DE CREDITO CORP EXECUTIVE<br>
+                <input type="checkbox" id="credito" value="CRÉDITO"> CRÉDITO<br>
+                <div id="credito_opciones">
+                    <input type="checkbox" id="tarjeta_credito" value="TARJETA DE CRÉDITO"> TARJETA DE CRÉDITO<br>
+                    <input type="checkbox" id="tarjeta_credito_corp" value="TARJETA DE CRÉDITO CORP"> TARJETA DE CRÉDITO CORP<br>
+                    <input type="checkbox" id="tarjeta_credito_corp_exec" value="TARJETA DE CRÉDITO CORP EXECUTIVE"> TARJETA DE CRÉDITO CORP EXECUTIVE<br>
+                </div>
                 <input type="checkbox" id="app_rp" value="APP & RP"> APP & RP<br>
                 <input type="checkbox" id="internet" value="INTERNET"> INTERNET<br>
                 <input type="checkbox" id="tc" value="TARJETA COORDENADA"> TARJETA COORDENADAS<br>
             </div>
         </div>
+        <div class="form-group">
+            <label for="razon">RAZÓN:</label>
+            <input type="text" id="razon">
+        </div>
         <button onclick="copiarDatos()">Copiar Datos</button>
     </div>
 
-    <!-- Módulo 3: Mensajes de Advertencia -->
     <div class="module">
         <h3>MENSAJES DE ADVERTENCIA</h3>
         <p id="warn_atm" class="warning">Advertencia: BLOQUEAR LA TARJETA EN P.A O CON E.N.</p>
@@ -264,7 +288,6 @@
         <p id="warn_tc" class="warning">Advertencia: BLOQUEAR LA TARJETA CON E.N.</p>
     </div>
 
-    <!-- Resultado -->
     <div id="resultado"></div>
 
     <script type="text/javascript">
@@ -280,22 +303,14 @@
                     var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
                     var firstSheetName = workbook.SheetNames[0];
                     var worksheet = workbook.Sheets[firstSheetName];
-
-                    // Convert sheet to JSON to filter blank rows
                     var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                    // Filter out blank rows (rows where all cells are empty, null, or undefined)
                     var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                    // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
                     var headerRowIndex = filteredData.findIndex((row, index) =>
                         row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
                     );
-                    // Fallback
                     if (headerRowIndex === -1 || headerRowIndex > 25) {
                         headerRowIndex = 0;
                     }
-
-                    // Convert filtered JSON back to CSV
                     var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
                     csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
                     return csv;
@@ -307,11 +322,9 @@
             return gk_fileData[filename] || "";
         }
 
-        // Mostrar/ocultar opciones de ATM
         document.getElementById('atm').addEventListener('change', () => {
             const atmOpciones = document.getElementById('atm_opciones');
             atmOpciones.style.display = document.getElementById('atm').checked ? 'block' : 'none';
-            // Limpiar selecciones si se desmarca ATM
             if (!document.getElementById('atm').checked) {
                 document.querySelectorAll('#atm_opciones input[type="checkbox"]').forEach(checkbox => {
                     checkbox.checked = false;
@@ -319,52 +332,93 @@
             }
         });
 
-        // Función para copiar los datos como texto plano
-        function copiarDatos() {
-            const motivo = document.getElementById('motivo').value;
-            const fono = document.getElementById('fono').value;
-            const fecha = document.getElementById('fecha').value;
-            const hora = document.getElementById('hora').value;
-            const comuna = document.getElementById('comuna').value;
-            const cedula = document.getElementById('cedula').value;
-            
-            // Usar un Set para evitar duplicados
-            const productosSet = new Set();
-            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-                if (checkbox.id === 'atm') {
-                    // Si ATM está seleccionado, solo incluir las subopciones
-                    document.querySelectorAll('#atm_opciones input[type="checkbox"]:checked').forEach(atmCheckbox => {
-                        productosSet.add(atmCheckbox.value);
-                    });
-                } else {
-                    // Incluir otros productos directamente
-                    productosSet.add(checkbox.value);
+        document.getElementById('credito').addEventListener('change', () => {
+            const creditoOpciones = document.getElementById('credito_opciones');
+            creditoOpciones.style.display = document.getElementById('credito').checked ? 'block' : 'none';
+            if (!document.getElementById('credito').checked) {
+                document.querySelectorAll('#credito_opciones input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+        });
+
+        function resetFormulario() {
+            document.getElementById('motivo').value = '01 EXTRAVÍO';
+            document.getElementById('rut').value = '';
+            document.getElementById('fono').value = '';
+            document.getElementById('fecha').value = '';
+            document.getElementById('hora').value = '';
+            document.getElementById('comuna').value = '';
+            document.getElementById('cedula').value = 'CON CEDULA';
+            document.getElementById('razon').value = '';
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+                const warnId = `warn_${checkbox.id}`;
+                const warning = document.getElementById(warnId);
+                if (warning) {
+                    warning.style.display = 'none';
                 }
             });
+            document.getElementById('atm_opciones').style.display = 'none';
+            document.getElementById('credito_opciones').style.display = 'none';
+            document.getElementById('resultado').textContent = '';
+        }
 
-            // Convertir el Set a un array para el join
-            const productos = Array.from(productosSet);
+        function copiarDatos() {
+            try {
+                const motivo = document.getElementById('motivo')?.value || 'No especificado';
+                const rut = document.getElementById('rut')?.value || '';
+                const fono = document.getElementById('fono')?.value || '';
+                const fecha = document.getElementById('fecha')?.value || '';
+                const hora = document.getElementById('hora')?.value || '';
+                const comuna = document.getElementById('comuna')?.value || '';
+                const cedula = document.getElementById('cedula')?.value || 'No especificado';
+                const razon = document.getElementById('razon')?.value || '';
+                
+                const productosSet = new Set();
+                document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                    if (checkbox.id === 'atm') {
+                        document.querySelectorAll('#atm_opciones input[type="checkbox"]:checked').forEach(atmCheckbox => {
+                            productosSet.add(atmCheckbox.value);
+                        });
+                    } else if (checkbox.id === 'credito') {
+                        document.querySelectorAll('#credito_opciones input[type="checkbox"]:checked').forEach(creditoCheckbox => {
+                            productosSet.add(creditoCheckbox.value);
+                        });
+                    } else {
+                        productosSet.add(checkbox.value);
+                    }
+                });
 
-            const texto = `
+                const productos = Array.from(productosSet);
+
+                const texto = `
 MOTIVO: ${motivo}
+RUT: ${rut}
 FONO: ${fono}
 FECHA: ${fecha}
 HORA: ${hora}
 COMUNA: ${comuna}
 CEDULA: ${cedula}
 PRODUCTOS: ${productos.join(', ')}
-            `.trim();
+RAZÓN: ${razon}
+                `.trim();
 
-            // Mostrar el texto en el div de resultado
-            const resultado = document.getElementById('resultado');
-            resultado.textContent = texto;
+                const resultado = document.getElementById('resultado');
+                resultado.textContent = texto;
 
-            navigator.clipboard.writeText(texto).then(() => {
-                alert('Datos copiados al portapapeles');
-            });
+                navigator.clipboard.writeText(texto).then(() => {
+                    alert('Datos copiados al portapapeles');
+                }).catch(err => {
+                    console.error('Error al copiar al portapapeles:', err);
+                    alert('Error al copiar los datos al portapapeles');
+                });
+            } catch (error) {
+                console.error('Error en copiarDatos:', error);
+                alert('Ocurrió un error al copiar los datos');
+            }
         }
 
-        // Actualizar advertencias en tiempo real
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', () => {
                 const warnId = `warn_${checkbox.id}`;
@@ -375,7 +429,6 @@ PRODUCTOS: ${productos.join(', ')}
             });
         });
 
-        // Función para alternar modo oscuro
         function toggleModoOscuro() {
             document.body.classList.toggle('modo-oscuro');
             const button = document.querySelector('button[onclick="toggleModoOscuro()"]');
