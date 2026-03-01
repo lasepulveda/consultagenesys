@@ -126,7 +126,7 @@
         renderTable();
     }
 
-    function renderTable() {
+   function renderTable() {
         const filteredData = rawData.filter(row => Object.keys(activeFilters).every(col => String(row[col]) === String(activeFilters[col])));
         document.getElementById('tableHead').innerHTML = `<tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>`;
         
@@ -134,9 +134,17 @@
         body.innerHTML = filteredData.map(row => {
             let rowClass = "";
             if (statusColRealName) {
+                // Convertimos a mayúsculas y quitamos espacios para comparar mejor
                 const val = String(row[statusColRealName] || "").toUpperCase().trim();
-                if (val === "SIN VENTAS") rowClass = "row-sin-ventas";
-                if (val === "CON VENTAS") rowClass = "row-con-ventas";
+                
+                // Nueva lógica: busca "SIN VENTA" o "SIN VENTAS"
+                if (val.includes("SIN VENTA")) {
+                    rowClass = "row-sin-ventas";
+                } 
+                // Busca "CON VENTA" o "CON VENTAS"
+                else if (val.includes("CON VENTA")) {
+                    rowClass = "row-con-ventas";
+                }
             }
             return `<tr class="${rowClass}">${columns.map(col => `<td>${row[col] || ''}</td>`).join('')}</tr>`;
         }).join('');
@@ -144,3 +152,4 @@
 </script>
 </body>
 </html>
+
