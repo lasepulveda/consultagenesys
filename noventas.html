@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestor de Ventas - Panel de Control</title>
+    <title>Gestor de Ventas - Status Proyecto</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; padding: 20px; color: #333; }
@@ -18,26 +18,27 @@
         th { background: #2c3e50; color: white; padding: 12px; text-align: left; position: sticky; top: 0; z-index: 10; }
         td { padding: 10px; border-bottom: 1px solid #dee2e6; white-space: nowrap; }
         
-        /* Colores de Status */
-        .row-sin-ventas { background-color: #ffebee !important; } /* Rojo pálido */
-        .row-con-ventas { background-color: #e8f5e9 !important; } /* Verde pálido */
-        tr:hover { filter: brightness(0.95); cursor: default; }
+        /* Colores de Status específicos */
+        .row-sin-ventas { background-color: #ffdce0 !important; } /* Rojo suave */
+        .row-con-ventas { background-color: #d4edda !important; } /* Verde suave */
+        tr:hover { filter: brightness(0.98); }
 
-        .stats { margin-bottom: 10px; font-weight: bold; color: #2980b9; display: flex; gap: 20px; }
-        .legend { font-size: 11px; display: flex; gap: 15px; margin-bottom: 10px; }
-        .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .stats { margin-bottom: 10px; font-weight: bold; color: #2980b9; }
+        .legend { font-size: 12px; display: flex; gap: 20px; justify-content: center; margin-top: 10px; font-weight: 500; }
+        .dot { height: 12px; width: 12px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🚀 Panel de Seguimiento de Ventas</h2>
+    <h2>🚀 Panel de Seguimiento: Status Proyecto</h2>
     
     <div class="upload-section">
+        <strong>Paso 1: Carga tu archivo</strong><br><br>
         <input type="file" id="uploadExcel" accept=".xlsx, .xls">
-        <div class="legend" style="justify-content: center; margin-top: 10px;">
-            <span><span class="dot" style="background:#ffebee; border:1px solid #ffcdd2;"></span> Sin Ventas</span>
-            <span><span class="dot" style="background:#e8f5e9; border:1px solid #c8e6c9;"></span> Con Ventas</span>
+        <div class="legend">
+            <span><span class="dot" style="background:#ffdce0; border:1px solid #f5c6cb;"></span> Status: SIN VENTAS</span>
+            <span><span class="dot" style="background:#d4edda; border:1px solid #c3e6cb;"></span> Status: CON VENTAS</span>
         </div>
     </div>
 
@@ -72,11 +73,11 @@
             const wb = XLSX.read(data, {type: 'array'});
             const matrix = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
             
-            const dataRows = matrix.slice(3); // Omitir 3 primeras filas
+            const dataRows = matrix.slice(3); // Salto de 3 filas
 
             if (dataRows.length > 0) {
                 const originalHeaders = dataRows[0];
-                const indicesOcultos = [0, 7, 15]; // Columnas A, H y P
+                const indicesOcultos = [0, 7, 15]; // Omitir A, H, P
                 
                 columns = originalHeaders.filter((_, idx) => !indicesOcultos.includes(idx))
                                          .map(c => c ? c.toString().trim() : "COL_VACIA");
@@ -94,7 +95,7 @@
                     return obj;
                 });
 
-                // Ordenar por Día de Atención (Lunes a Viernes)
+                // Orden Lunes-Viernes
                 rawData.sort((a, b) => {
                     const diaA = ORDEN_DIAS[String(a["DÍA DE ATENCIÓN"]).toUpperCase()] || 99;
                     const diaB = ORDEN_DIAS[String(b["DÍA DE ATENCIÓN"]).toUpperCase()] || 99;
@@ -142,17 +143,17 @@
             return Object.keys(activeFilters).every(col => String(row[col]) === String(activeFilters[col]));
         });
 
-        document.getElementById('stats').innerText = `Total: ${filteredData.length} registros filtrados`;
+        document.getElementById('stats').innerText = `Clientes filtrados: ${filteredData.length}`;
         document.getElementById('tableHead').innerHTML = `<tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>`;
         
         const body = document.getElementById('tableBody');
         body.innerHTML = filteredData.map(row => {
-            // Lógica de color de fila
+            // Lógica de color enfocada en "STATUS PROYECTO"
             let rowClass = "";
-            const rowString = JSON.stringify(row).toUpperCase();
+            const statusValue = String(row["STATUS PROYECTO"] || "").toUpperCase();
             
-            if (rowString.includes("SIN VENTAS")) rowClass = "row-sin-ventas";
-            else if (rowString.includes("CON VENTAS")) rowClass = "row-con-ventas";
+            if (statusValue.includes("SIN VENTAS")) rowClass = "row-sin-ventas";
+            else if (statusValue.includes("CON VENTAS")) rowClass = "row-con-ventas";
 
             return `
                 <tr class="${rowClass}">
