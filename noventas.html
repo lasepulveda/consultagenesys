@@ -2,48 +2,41 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestor de Ventas - Status Proyecto</title>
+    <title>Gestor de Ventas - Reparado</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; padding: 20px; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; padding: 20px; }
         .container { max-width: 1500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .upload-section { border: 2px dashed #3498db; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; background: #ebf5fb; }
         .filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
         .filter-group { display: flex; flex-direction: column; gap: 4px; }
         .filter-group label { font-size: 10px; font-weight: bold; color: #2c3e50; text-transform: uppercase; }
         select { padding: 6px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 11px; }
-        
         .results-table-container { overflow-x: auto; max-height: 700px; border: 1px solid #e2e8f0; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; }
         th { background: #2c3e50; color: white; padding: 12px; text-align: left; position: sticky; top: 0; z-index: 10; }
         td { padding: 10px; border-bottom: 1px solid #dee2e6; white-space: nowrap; }
         
-        /* Colores de Status específicos */
-        .row-sin-ventas { background-color: #ffdce0 !important; } /* Rojo suave */
-        .row-con-ventas { background-color: #d4edda !important; } /* Verde suave */
-        tr:hover { filter: brightness(0.98); }
-
-        .stats { margin-bottom: 10px; font-weight: bold; color: #2980b9; }
-        .legend { font-size: 12px; display: flex; gap: 20px; justify-content: center; margin-top: 10px; font-weight: 500; }
-        .dot { height: 12px; width: 12px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+        /* COLORES DE FILA */
+        .row-sin-ventas { background-color: #ffcdd2 !important; } /* Rojo más intenso para notar la diferencia */
+        .row-con-ventas { background-color: #c8e6c9 !important; } /* Verde más intenso */
+        
+        .debug-msg { font-size: 12px; padding: 10px; margin-bottom: 10px; border-radius: 5px; display: none; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🚀 Panel de Seguimiento: Status Proyecto</h2>
+    <h2>🚀 Panel de Seguimiento (Detector de Columnas)</h2>
     
     <div class="upload-section">
-        <strong>Paso 1: Carga tu archivo</strong><br><br>
         <input type="file" id="uploadExcel" accept=".xlsx, .xls">
-        <div class="legend">
-            <span><span class="dot" style="background:#ffdce0; border:1px solid #f5c6cb;"></span> Status: SIN VENTAS</span>
-            <span><span class="dot" style="background:#d4edda; border:1px solid #c3e6cb;"></span> Status: CON VENTAS</span>
-        </div>
+        <div id="debugBox" class="debug-msg"></div>
     </div>
 
     <div id="mainContent" style="display:none;">
-        <div id="stats" class="stats"></div>
         <div class="filters-grid" id="filtersContainer"></div>
         <div class="results-table-container">
             <table>
@@ -58,11 +51,9 @@
     let rawData = [];
     let columns = [];
     let activeFilters = {};
+    let statusColRealName = ""; // Guardará el nombre exacto que encuentre en el Excel
 
-    const ORDEN_DIAS = {
-        "LUNES": 1, "MARTES": 2, "MIERCOLES": 3, "MIÉRCOLES": 3, 
-        "JUEVES": 4, "VIERNES": 5, "SABADO": 6, "SÁBADO": 6, "DOMINGO": 7
-    };
+    const ORDEN_DIAS = { "LUNES": 1, "MARTES": 2, "MIERCOLES": 3, "MIÉRCOLES": 3, "JUEVES": 4, "VIERNES": 5, "SABADO": 6, "SÁBADO": 6, "DOMINGO": 7 };
 
     document.getElementById('uploadExcel').addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -72,35 +63,39 @@
             const data = new Uint8Array(event.target.result);
             const wb = XLSX.read(data, {type: 'array'});
             const matrix = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
-            
-            const dataRows = matrix.slice(3); // Salto de 3 filas
+            const dataRows = matrix.slice(3);
 
             if (dataRows.length > 0) {
-                const originalHeaders = dataRows[0];
-                const indicesOcultos = [0, 7, 15]; // Omitir A, H, P
+                const originalHeaders = dataRows[0].map(h => h ? h.toString().trim() : "");
+                const indicesOcultos = [0, 7, 15];
                 
-                columns = originalHeaders.filter((_, idx) => !indicesOcultos.includes(idx))
-                                         .map(c => c ? c.toString().trim() : "COL_VACIA");
+                // Detectar el nombre real de la columna de Status
+                statusColRealName = originalHeaders.find(h => 
+                    h.toUpperCase().includes("STATUS") && h.toUpperCase().includes("PROYECTO")
+                );
+
+                const debugBox = document.getElementById('debugBox');
+                if (statusColRealName) {
+                    debugBox.innerHTML = `✅ Columna detectada para colores: <strong>"${statusColRealName}"</strong>`;
+                    debugBox.className = "debug-msg success";
+                } else {
+                    debugBox.innerHTML = `⚠️ No se encontró la columna "STATUS PROYECTO". Revisa que el nombre sea exacto en la fila 4.`;
+                    debugBox.className = "debug-msg warning";
+                }
+                debugBox.style.display = "block";
+
+                columns = originalHeaders.filter((_, idx) => !indicesOcultos.includes(idx));
 
                 const rows = dataRows.slice(1);
                 rawData = rows.map(row => {
                     let obj = {};
-                    let colCounter = 0;
-                    originalHeaders.forEach((_, idx) => {
-                        if (!indicesOcultos.includes(idx)) {
-                            obj[columns[colCounter]] = row[idx] !== undefined ? row[idx] : "";
-                            colCounter++;
-                        }
+                    originalHeaders.forEach((name, idx) => {
+                        if (!indicesOcultos.includes(idx)) obj[name] = row[idx] || "";
                     });
                     return obj;
                 });
 
-                // Orden Lunes-Viernes
-                rawData.sort((a, b) => {
-                    const diaA = ORDEN_DIAS[String(a["DÍA DE ATENCIÓN"]).toUpperCase()] || 99;
-                    const diaB = ORDEN_DIAS[String(b["DÍA DE ATENCIÓN"]).toUpperCase()] || 99;
-                    return diaA - diaB;
-                });
+                rawData.sort((a, b) => (ORDEN_DIAS[String(a["DÍA DE ATENCIÓN"]).toUpperCase()] || 99) - (ORDEN_DIAS[String(b["DÍA DE ATENCIÓN"]).toUpperCase()] || 99));
 
                 setupInterface();
             }
@@ -115,18 +110,11 @@
         activeFilters = {};
 
         columns.forEach(col => {
-            if(col === "COL_VACIA") return;
+            if(!col) return;
             const group = document.createElement('div');
             group.className = 'filter-group';
             const uniqueValues = [...new Set(rawData.map(item => item[col]))].filter(v => v !== '').sort();
-
-            group.innerHTML = `
-                <label>${col}</label>
-                <select onchange="updateFilter('${col}', this.value)">
-                    <option value="ALL">-- Ver todos --</option>
-                    ${uniqueValues.map(v => `<option value="${v}">${v}</option>`).join('')}
-                </select>
-            `;
+            group.innerHTML = `<label>${col}</label><select onchange="updateFilter('${col}', this.value)"><option value="ALL">-- Ver todos --</option>${uniqueValues.map(v => `<option value="${v}">${v}</option>`).join('')}</select>`;
             container.appendChild(group);
         });
         renderTable();
@@ -139,27 +127,18 @@
     }
 
     function renderTable() {
-        const filteredData = rawData.filter(row => {
-            return Object.keys(activeFilters).every(col => String(row[col]) === String(activeFilters[col]));
-        });
-
-        document.getElementById('stats').innerText = `Clientes filtrados: ${filteredData.length}`;
+        const filteredData = rawData.filter(row => Object.keys(activeFilters).every(col => String(row[col]) === String(activeFilters[col])));
         document.getElementById('tableHead').innerHTML = `<tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>`;
         
         const body = document.getElementById('tableBody');
         body.innerHTML = filteredData.map(row => {
-            // Lógica de color enfocada en "STATUS PROYECTO"
             let rowClass = "";
-            const statusValue = String(row["STATUS PROYECTO"] || "").toUpperCase();
-            
-            if (statusValue.includes("SIN VENTAS")) rowClass = "row-sin-ventas";
-            else if (statusValue.includes("CON VENTAS")) rowClass = "row-con-ventas";
-
-            return `
-                <tr class="${rowClass}">
-                    ${columns.map(col => `<td>${row[col] || ''}</td>`).join('')}
-                </tr>
-            `;
+            if (statusColRealName) {
+                const val = String(row[statusColRealName] || "").toUpperCase().trim();
+                if (val === "SIN VENTAS") rowClass = "row-sin-ventas";
+                if (val === "CON VENTAS") rowClass = "row-con-ventas";
+            }
+            return `<tr class="${rowClass}">${columns.map(col => `<td>${row[col] || ''}</td>`).join('')}</tr>`;
         }).join('');
     }
 </script>
