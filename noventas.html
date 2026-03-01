@@ -2,42 +2,37 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Analizador Inteligente de Excel</title>
+    <title>Analizador Pro - Filtros Dinámicos</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; padding: 20px; color: #333; }
-        .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        h1 { color: #2c3e50; font-size: 22px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .upload-section { background: #ffffff; border: 2px dashed #cbd5e0; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 25px; transition: 0.3s; }
-        .upload-section:hover { border-color: #3182ce; background: #ebf8ff; }
-        .filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; padding: 20px; color: #333; }
+        .container { max-width: 1400px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .upload-section { border: 2px dashed #3182ce; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; background: #ebf8ff; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
         .filter-group { display: flex; flex-direction: column; gap: 5px; }
-        .filter-group label { font-size: 11px; font-weight: bold; color: #718096; text-transform: uppercase; }
-        select { padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; font-size: 13px; cursor: pointer; }
-        .stats { margin-bottom: 15px; font-size: 14px; font-weight: 600; color: #4a5568; }
-        .results-table-container { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
-        table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; }
-        th { background: #edf2f7; padding: 12px; text-align: left; color: #2d3748; sticky; top: 0; }
-        td { padding: 10px 12px; border-bottom: 1px solid #edf2f7; }
+        .filter-group label { font-size: 10px; font-weight: bold; color: #4a5568; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 12px; }
+        .results-table-container { overflow-x: auto; max-height: 600px; border: 1px solid #e2e8f0; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #2c3e50; color: white; padding: 12px; text-align: left; position: sticky; top: 0; z-index: 10; }
+        td { padding: 8px 12px; border-bottom: 1px solid #edf2f7; white-space: nowrap; }
         tr:hover { background: #f7fafc; }
-        .no-data { text-align: center; padding: 40px; color: #a0aec0; }
+        .stats { margin-bottom: 10px; font-weight: bold; color: #2b6cb0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 Panel de Control Dinámico</h1>
+    <h2>📊 Gestión de Ventas (Lectura desde Fila 4)</h2>
     
-    <div class="upload-section" id="dropZone">
-        <strong>Arrastra tu Excel aquí o</strong><br><br>
+    <div class="upload-section">
         <input type="file" id="uploadExcel" accept=".xlsx, .xls">
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">El sistema omitirá automáticamente las primeras 3 filas de tu archivo.</p>
     </div>
 
     <div id="mainContent" style="display:none;">
         <div id="stats" class="stats"></div>
-        <div class="filters-grid" id="filtersContainer">
-            </div>
-
+        <div class="filters-grid" id="filtersContainer"></div>
         <div class="results-table-container">
             <table id="dataTable">
                 <thead id="tableHead"></thead>
@@ -60,11 +55,31 @@
             const data = new Uint8Array(event.target.result);
             const wb = XLSX.read(data, {type: 'array'});
             const sheet = wb.Sheets[wb.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(sheet);
+            
+            /* ESTRATEGIA: Convertimos la hoja a una matriz (array de arrays) 
+               para poder manipular las filas fácilmente.
+            */
+            const matrix = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            
+            // Omitimos las primeras 3 filas (índice 0, 1 y 2)
+            const dataRows = matrix.slice(3);
 
-            if (json.length > 0) {
-                rawData = json;
-                columns = Object.keys(json[0]);
+            if (dataRows.length > 1) {
+                // La nueva "Fila 1" (originalmente la 4) son nuestros encabezados
+                columns = dataRows[0].map(col => col ? col.toString().trim() : "SIN_NOMBRE");
+                
+                // El resto de filas son los datos
+                const rows = dataRows.slice(1);
+                
+                // Convertimos de nuevo a formato objeto para que los filtros funcionen
+                rawData = rows.map(row => {
+                    let obj = {};
+                    columns.forEach((colName, index) => {
+                        obj[colName] = row[index] !== undefined ? row[index] : "";
+                    });
+                    return obj;
+                });
+
                 setupInterface();
             }
         };
@@ -78,6 +93,9 @@
         activeFilters = {};
 
         columns.forEach(col => {
+            // No creamos filtros para columnas vacías
+            if(col === "SIN_NOMBRE") return;
+
             const group = document.createElement('div');
             group.className = 'filter-group';
             
@@ -87,8 +105,8 @@
 
             group.innerHTML = `
                 <label>${col}</label>
-                <select id="filter-${col}" onchange="updateFilter('${col}', this.value)">
-                    <option value="ALL">-- Ver todos --</option>
+                <select onchange="updateFilter('${col}', this.value)">
+                    <option value="ALL">-- Todos --</option>
                     ${uniqueValues.map(v => `<option value="${v}">${v}</option>`).join('')}
                 </select>
             `;
@@ -99,11 +117,8 @@
     }
 
     function updateFilter(column, value) {
-        if (value === "ALL") {
-            delete activeFilters[column];
-        } else {
-            activeFilters[column] = value;
-        }
+        if (value === "ALL") delete activeFilters[column];
+        else activeFilters[column] = value;
         renderTable();
     }
 
@@ -114,21 +129,14 @@
             });
         });
 
-        document.getElementById('stats').innerText = `Registros encontrados: ${filteredData.length} de ${rawData.length}`;
+        document.getElementById('stats').innerText = `Mostrando ${filteredData.length} de ${rawData.length} registros`;
 
-        // Render Head
-        const head = document.getElementById('tableHead');
-        head.innerHTML = `<tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>`;
+        document.getElementById('tableHead').innerHTML = `<tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>`;
 
-        // Render Body
         const body = document.getElementById('tableBody');
-        if (filteredData.length === 0) {
-            body.innerHTML = `<tr><td colspan="${columns.length}" class="no-data">No hay datos que coincidan con los filtros</td></tr>`;
-        } else {
-            body.innerHTML = filteredData.map(row => `
-                <tr>${columns.map(col => `<td>${row[col] || '-'}</td>`).join('')}</tr>
-            `).join('');
-        }
+        body.innerHTML = filteredData.map(row => `
+            <tr>${columns.map(col => `<td>${row[col] || ''}</td>`).join('')}</tr>
+        `).join('');
     }
 </script>
 
